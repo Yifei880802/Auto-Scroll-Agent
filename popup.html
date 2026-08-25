@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        width: 380px;
+        font: 13px/1.5 -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+        background: #1a1a2e;
+        color: #e0e0e0;
+        padding: 16px;
+    }
+    h1 { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .subtitle { font-size: 11px; color: #888; margin-bottom: 12px; }
+
+    /* Steps */
+    .steps { display: flex; gap: 6px; margin-bottom: 14px; }
+    .step {
+        flex: 1; text-align: center; padding: 4px 0;
+        font-size: 11px; font-weight: 500;
+        background: #2a2a3e; border-radius: 6px; color: #666;
+        transition: all 0.2s;
+    }
+    .step.active { background: #3a3a5e; color: #a0a0ff; }
+
+    /* Buttons */
+    .btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .btn {
+        flex: 1; padding: 8px 0; border: none; border-radius: 8px;
+        font: 600 13px/1 -apple-system, sans-serif;
+        cursor: pointer; transition: all 0.15s;
+    }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+    .btn-scan { background: #2a2a3e; color: #a0a0ff; }
+    .btn-scan:hover:not(:disabled) { background: #3a3a5e; }
+    .btn-start { background: #2ecc71; color: #fff; }
+    .btn-start:hover:not(:disabled) { background: #27ae60; }
+    .btn-stop { background: #e74c3c; color: #fff; }
+    .btn-stop:hover:not(:disabled) { background: #c0392b; }
+
+    /* Settings */
+    .settings {
+        display: grid; grid-template-columns: 1fr 1fr;
+        gap: 8px; margin-bottom: 12px;
+        background: #16213e; border-radius: 8px; padding: 10px;
+    }
+    .setting-item { display: flex; flex-direction: column; gap: 2px; }
+    .setting-item label { font-size: 11px; color: #888; }
+    .setting-item input[type="number"] {
+        width: 100%; padding: 4px 8px; border: 1px solid #333;
+        border-radius: 6px; background: #1a1a2e; color: #fff;
+        font-size: 13px;
+    }
+    .setting-check {
+        display: flex; align-items: center; gap: 6px;
+        font-size: 12px; color: #aaa; cursor: pointer;
+    }
+    .setting-check input { accent-color: #a0a0ff; }
+
+    /* List */
+    .list-section { margin-bottom: 12px; }
+    .list-header { font-size: 11px; color: #888; margin-bottom: 6px; }
+    .scroll-list {
+        max-height: 200px; overflow-y: auto;
+        border: 1px solid #2a2a3e; border-radius: 8px;
+    }
+    .el-item {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 10px; cursor: pointer;
+        border-bottom: 1px solid #2a2a3e;
+        transition: background 0.15s;
+    }
+    .el-item:last-child { border-bottom: none; }
+    .el-item:hover { background: #2a2a3e; }
+    .el-item.selected { background: #1a3a5e; border-left: 3px solid #3498db; }
+    .el-num {
+        width: 28px; height: 28px; border-radius: 50%;
+        background: #e53935; color: white;
+        font: bold 14px/28px monospace; text-align: center;
+        flex-shrink: 0;
+    }
+    .el-info { flex: 1; min-width: 0; }
+    .el-tag { font-size: 12px; font-weight: 500; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .el-meta { font-size: 10px; color: #666; }
+    .el-overflow { font-size: 11px; color: #e53935; white-space: nowrap; }
+    .el-overflow .arrow { font-size: 14px; }
+    .empty-msg { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+
+    /* Status */
+    .status-card {
+        display: none;
+        background: #16213e; border-radius: 8px; padding: 10px 12px;
+        margin-bottom: 12px;
+    }
+    .status-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .s-label { font-size: 11px; color: #888; }
+    .s-value { font-size: 13px; font-weight: 600; }
+    .s-value.on { color: #2ecc71; }
+    .s-value.off { color: #e74c3c; }
+    .progress-bar {
+        width: 100%; height: 6px; background: #2a2a3e;
+        border-radius: 3px; overflow: hidden; margin-top: 4px;
+    }
+    .progress-fill {
+        height: 100%; background: linear-gradient(90deg, #3498db, #2ecc71);
+        border-radius: 3px; transition: width 0.3s;
+        width: 0%;
+    }
+
+    /* Log */
+    .log-box {
+        max-height: 100px; overflow-y: auto;
+        background: #111; border-radius: 6px; padding: 8px;
+        font: 10px/1.4 'SF Mono', 'Menlo', monospace;
+        color: #888;
+    }
+    .log-box div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .footer { text-align: center; font-size: 10px; color: #444; margin-top: 10px; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+</style>
+</head>
+<body>
+    <h1>Auto Scroll Agent</h1>
+    <div class="subtitle">Keep any page alive with auto-scrolling</div>
+
+    <div class="steps">
+        <div class="step active">1. Scan</div>
+        <div class="step">2. Pick</div>
+        <div class="step">3. Go</div>
+    </div>
+
+    <div class="settings">
+        <div class="setting-item">
+            <label>Speed (px)</label>
+            <input type="number" id="inputSpeed" value="30" min="1" max="500">
+        </div>
+        <div class="setting-item">
+            <label>Interval (s)</label>
+            <input type="number" id="inputInterval" value="2" min="1" max="60">
+        </div>
+        <label class="setting-check">
+            <input type="checkbox" id="chkMouse" checked> Simulate mouse
+        </label>
+        <label class="setting-check">
+            <input type="checkbox" id="chkFocus" checked> Hijack focus
+        </label>
+    </div>
+
+    <div class="btn-row">
+        <button class="btn btn-scan" id="btnScan">Scan</button>
+        <button class="btn btn-start" id="btnStart" disabled>Start</button>
+        <button class="btn btn-stop" id="btnStop" disabled>Stop</button>
+    </div>
+
+    <div class="status-card" id="statusCard">
+        <div class="status-row">
+            <span class="s-label">Status</span>
+            <span class="s-value off" id="statusText">Idle</span>
+        </div>
+        <div class="status-row">
+            <span class="s-label">Runtime</span>
+            <span class="s-value" id="runTime">00:00:00</span>
+        </div>
+        <div class="status-row">
+            <span class="s-label">Scroll</span>
+            <span class="s-value" id="scrollPct">0%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+    </div>
+
+    <div class="list-section">
+        <div class="list-header">Scrollable Elements</div>
+        <div class="scroll-list" id="scrollList">
+            <div class="empty-msg" id="emptyMsg">Click Scan to find elements</div>
+        </div>
+    </div>
+
+    <div class="log-box" id="logBox"></div>
+
+    <div class="footer">Auto Scroll Agent v4.7</div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
